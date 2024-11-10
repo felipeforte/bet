@@ -15,8 +15,45 @@
   (println (json/parse-string (slurp "test/sports") true))
   )
 
+(defn get-json-tournaments
+  "Retorna JSON com lista de torneios de apostas"
+  []
+   (println "Buscando resposta GET...") ; Comentado para evitar chamadas à API
+   (def resp (client/get "https://betano.p.rapidapi.com/tournaments"
+               {:headers {"x-rapidapi-key" "7e74fa9991msh6adec433f460cb7p1f3802jsn94929cbbe680"
+                          "x-rapidapi-host" "betano.p.rapidapi.com"}
+                :query-params {"sport" "soccer"}}))
+   (spit "test/tournaments.json" (:body resp)) ; Salva a resposta para evitar chamadas contínuas à API
+  (println (json/parse-string (slurp "test/tournaments.json") true)))
+ 
+
+(defn get-json-events
+  "Retorna JSON com lista de eventos"
+  []
+  ;; (println "Buscando resposta GET...") ; Comentado para evitar chamadas à API
+  ;; (def resp (client/get "https://betano.p.rapidapi.com/events"
+  ;;              {:headers {"x-rapidapi-key" "7e74fa9991msh6adec433f460cb7p1f3802jsn94929cbbe680"
+  ;;                         "x-rapidapi-host" "betano.p.rapidapi.com"}
+  ;;               :query-params {"tournament" "some-tournament-id"}}))
+  ;; (spit "test/events.json" (:body resp)) ; Salva a resposta para evitar estourar o limite da API
+  (println (json/parse-string (slurp "test/events.json") true)))
+
+(defn get-json-oddstypes
+  "Retorna JSON com lista de tipos de odds"
+  []
+  ;; (println "Buscando resposta GET...") ; Comentado para evitar chamadas à API
+  ;; (def resp (client/get "https://betano.p.rapidapi.com/oddstypes"
+  ;;              {:headers {"x-rapidapi-key" "7e74fa9991msh6adec433f460cb7p1f3802jsn94929cbbe680"
+  ;;                         "x-rapidapi-host" "betano.p.rapidapi.com"}}))
+  ;; (spit "test/oddstypes.json" (:body resp)) ; Salva a resposta para evitar estourar o limite da API
+  (println (json/parse-string (slurp "test/oddstypes.json") true)))
+
+
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
   (get-json-sports)
+  (get-json-tournaments)
+  (get-json-events)
+  (get-json-oddstypes)
   )
