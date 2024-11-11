@@ -8,9 +8,9 @@
   "Retorna JSON com lista de esportes disponíveis"
   []
   (println "Buscando resposta GET (sports)...")
-  (def resp (client/get "https://betano.p.rapidapi.com/sports" {:headers {:x-rapidapi-key "4a99664d09msh4338b9e97205a19p14bf36jsne665166aa327"
-                                                                            :x-rapidapi-host "betano.p.rapidapi.com"}}))
-  (spit "test/sports.json" (:body resp)) ; Salva a chamada da API pra evitar estourar o limite durante a fase de testes
+  ;; (def resp (client/get "https://betano.p.rapidapi.com/sports" {:headers {:x-rapidapi-key "4a99664d09msh4338b9e97205a19p14bf36jsne665166aa327"
+  ;;                                                                           :x-rapidapi-host "betano.p.rapidapi.com"}}))
+  ;; (spit "test/sports.json" (:body resp)) ; Salva a chamada da API pra evitar estourar o limite durante a fase de testes
   ;; (json/parse-string (:body resp) true)  
   (println (json/parse-string (slurp "test/sports.json") true))
   )
