@@ -1,37 +1,20 @@
 (ns bet.db)
 
-(def apostas (atom []))
-(def eventos (atom {}))
+(def saldo (atom 0))
 
-(defn registrar-aposta [aposta]
-  (let [nova-aposta (assoc aposta :id (inc (count @apostas)) :status "pendente")]
-    (swap! apostas conj nova-aposta)
-    nova-aposta))
+(defn validar-deposito [valor]
+  (cond
+    (not (number? valor))                   {:erro "O valor do depósito deve ser um número"}
+    (or (zero? valor) (neg? valor))         {:erro "O valor precisa ser maior que zero."}
+    :else                                   nil
+     ))
 
-(defn listar-apostas []
-  @apostas)
+(defn atualizar-saldo [saldo-atom valor]
+  (swap! saldo-atom + valor))
 
-(defn limpar-apostas []
-  (reset! apostas []))
-
-(defn atualizar-status-aposta [id status]
-  (swap! apostas
-         (fn [aps]
-           (map (fn [a]
-                  (if (= (:id a) id)
-                    (assoc a :status status)
-                    a))
-                aps))))
-
-(defn obter-aposta-por-id [id]
-  (first (filter #(= (:id %) id) @apostas)))
-
-;; Funções para gerenciar eventos
-(defn carregar-eventos [dados]
-  (reset! eventos dados))
-
-(defn listar-eventos []
-  (get @eventos "events"))
-
-(defn obter-evento-por-id [id]
-  (get-in @eventos ["events" id]))
+(defn depositar [valor]
+  (let [erro (validar-deposito valor)]
+    (if erro
+      erro
+      {:success true
+          :novo-saldo (atualizar-saldo saldo valor)})))
