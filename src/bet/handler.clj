@@ -3,17 +3,14 @@
             [compojure.route :as route]
             [cheshire.core :as json]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
-            [bet.db :as db]))
-
-(def transacoes (atom []))
-
-(defn registrar-transacao [tipo valor]
-  (swap! transacoes conj {:tipo tipo :valor valor :horario (System/currentTimeMillis)}))
+            [bet.db :as db]
+            [bet.core :as core]))
 
 (defn para-json [conteudo & [status]]
   {:status (or status 200)
    :headers {"Content-Type" "application/json; charset=utf-8"}
    :body (json/generate-string conteudo)})
+
 
 (defn retorna-json-body [requisicao]
   (try
@@ -24,12 +21,22 @@
 (defn depositar [requisicao]
   (let [body (retorna-json-body requisicao)
         valor (:valor body)
-        resultado (db/depositar valor)]
+        resultado (db/processar-deposito valor)]
     (if (:erro resultado)
       (para-json {:erro (:erro resultado)} 400)
       (para-json {:mensagem "Depósito realizado com sucesso!"
-                     :saldo-atual (:novo-saldo resultado)})))
-  )
+                     :saldo-atual (:novo-saldo resultado)}))))
+
+(defn --apostar [requisicao]
+  (let [body (retorna-json-body requisicao)
+        valor (:valor body)
+        odds (:odds body)
+        evento (:evento body)
+        resultado (db/processar-aposta valor odds evento)]
+    (if (:erro resultado)
+      (para-json {:erro (:erro resultado)} 400)
+      (para-json {:mensagem "Aposta realizada com sucesso!"
+                  :saldo-atual (:novo-saldo resultado)}))))
 
 (defn apostar [requisicao]
   (let [body (retorna-json-body requisicao)
