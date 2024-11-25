@@ -29,9 +29,18 @@
                                                                            :x-rapidapi-host "betano.p.rapidapi.com"}
                                                                  :query-params {:tournamentId tournamentId}})
           body (:body resp)]
-         (spit (str "test/" tournamentId "-events-soccer.json") body)
+         (spit (str "test/" tournamentId "-events.json") body)
       )
   )
+
+(defn get-event-odds [eventId]
+  (let [resp (client/get "https://betano.p.rapidapi.com/odds_betano" {:headers {:x-rapidapi-key "c9cb38318cmsh9607b632446376bp113300jsnc5cf5f7e8aca"
+                                                                                :x-rapidapi-host "betano.p.rapidapi.com"}
+                                                                      :query-params {:eventId eventId
+                                                                                     :oddsFormat "decimal"
+                                                                                     :raw "false"}})
+        body (:body resp)]
+    (spit (str "test/" eventId "-odds.json") body)))
 
 (defn get-tournaments-basketball
   "Retorna JSON com lista de torneios de basquete"
@@ -45,21 +54,6 @@
   ;;   (spit "test/tournaments-basketball.json" body))
   (let [body (json/parse-string (slurp "test/tournaments-basketball.json") true)]
     (filtrar-brasil body))
-  )
-
-(defn get-events
-  "Retorna JSON com lista de eventos"
-  []
-  (println "Buscando eventos via API externo...")
-  ; Descomentar em produção
-  ;; (let [resp (client/get "https://betano.p.rapidapi.com/events" {:headers {"x-rapidapi-key" api-key  
-  ;;                                                                          "x-rapidapi-host" "betano.p.rapidapi.com"}
-  ;;                                                                :query-params {:tournamentId "91"}})
-  ;;       body (:body resp)]
-  ;;      (spit "test/events.json" body)
-  ; Comentar em produção
-  (let [body (json/parse-string (slurp "test/events.json") true)] 
-    (println (:events body)))
   )
 
 

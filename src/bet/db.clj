@@ -9,7 +9,8 @@
 (def transacoes (atom []))
 
 (defn registrar-transacao [tipo valor]
-  (swap! transacoes conj {:tipo tipo :valor valor :horario (System/currentTimeMillis)}))
+  
+  )
 
 (defn validar-deposito [valor]
   (cond
@@ -29,16 +30,8 @@
        :saldo-atual saldo})))
 
 (defn validar-valor-aposta [valor]
-  (if (or (not (number? valor)) (neg? valor)) ; Checa se n eh número ou negativo
-        {:erro "O valor da aposta deve ser um número maior que zero"} 400 ; Se n for número ou negativo, devolve erro
-        (let [novo-saldo (swap! saldo - valor)]
-          (if (neg? novo-saldo) ; Se o novo saldo for negativo (valor maior que em conta)
-            (do
-              (swap! saldo + valor) ; Desfaz a subtração
-              {:erro "Saldo insuficiente"} 400)
-            (do
-              (registrar-transacao "aposta" valor)
-              )))))
+  
+  )
 
 (defn validar-odds-aposta [odds]
   )

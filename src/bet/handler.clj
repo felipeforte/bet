@@ -51,7 +51,7 @@
             (swap! db/saldo + valor) ; Desfaz a subtração
             (para-json {:erro "Saldo insuficiente"} 400))
           (do
-            (registrar-transacao "aposta" valor)
+            ;; (registrar-transacao "aposta" valor)
             (para-json {:mensagem "Aposta registrada com sucesso"
                         :saldo-atual novo-saldo})))))))
 
