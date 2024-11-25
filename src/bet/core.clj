@@ -4,6 +4,8 @@
 (require '[clj-http.client :as client]
          '[cheshire.core :as json])
 
+(def disponiveis {:torneios #{325, 1562}})
+
 (def api-key "c9cb38318cmsh9607b632446376bp113300jsnc5cf5f7e8aca")
 
 (defn filtrar-brasil [body]
@@ -13,33 +15,46 @@
   "Retorna JSON com lista de torneios de futebol"
   []
   (println "Buscando torneios via API externo...")
+
   ; Descomentar em produção
   ;; (let [resp (client/get "https://betano.p.rapidapi.com/tournaments" {:headers {:x-rapidapi-key api-key
   ;;                                                                               :x-rapidapi-host "betano.p.rapidapi.com"}
   ;;                                                                     :query-params {:sport "soccer"}})
-  ;;       body (:body resp)]
-  ;;      (spit "test/tournaments-soccer.json" body)
+  ;;       json-string (:body resp)
+  ;;       body (json/parse-string json-string)]
+  ;;      (spit "test/tournaments-soccer.json" json-string)
   ;;   )
+
+  ;; Comentar em produção
   (let [body (json/parse-string (slurp "test/tournaments-soccer.json") true)]
     (filtrar-brasil body))
   )
 
 (defn get-events [tournamentId]
-  (let [resp (client/get "https://betano.p.rapidapi.com/events" {:headers {:x-rapidapi-key api-key
-                                                                           :x-rapidapi-host "betano.p.rapidapi.com"}
-                                                                 :query-params {:tournamentId tournamentId}})
-          body (:body resp)]
-         (spit (str "test/" tournamentId "-events.json") body)
-      )
+  (if (not (contains? (:torneios disponiveis) tournamentId))
+    {:erro "Torneio não disponível."}
+
+    ;; Descomentar em produção
+    ;; (let [resp (client/get "https://betano.p.rapidapi.com/events" {:headers {:x-rapidapi-key api-key
+    ;;                                                                          :x-rapidapi-host "betano.p.rapidapi.com"}
+    ;;                                                                :query-params {:tournamentId tournamentId}})
+    ;;       json-string (:body resp)
+    ;;       body (json/parse-string json-string true)]
+    ;;   (spit (str "test/" tournamentId "-events.json") json-string)
+    ;; Comentar em produção
+    (let [body (json/parse-string (slurp (str "test/" tournamentId "-events.json")) true)]
+      (:events body))
+  )
   )
 
 (defn get-event-odds [eventId]
-  (let [resp (client/get "https://betano.p.rapidapi.com/odds_betano" {:headers {:x-rapidapi-key "c9cb38318cmsh9607b632446376bp113300jsnc5cf5f7e8aca"
+  (let [resp (client/get "https://betano.p.rapidapi.com/odds_betano" {:headers {:x-rapidapi-key api-key
                                                                                 :x-rapidapi-host "betano.p.rapidapi.com"}
                                                                       :query-params {:eventId eventId
                                                                                      :oddsFormat "decimal"
                                                                                      :raw "false"}})
-        body (:body resp)]
+        json-string (:body resp)
+        body (json/parse-string json-string)]
     (spit (str "test/" eventId "-odds.json") body)))
 
 (defn get-tournaments-basketball
@@ -50,8 +65,8 @@
   ;; (let [resp (client/get "https://betano.p.rapidapi.com/tournaments" {:headers {:x-rapidapi-key api-key
   ;;                                                                               :x-rapidapi-host "betano.p.rapidapi.com"}
   ;;                                                                     :query-params {:sport "basketball"}})
-  ;;       body (:body resp)]
-  ;;   (spit "test/tournaments-basketball.json" body))
+  ;;       json-string (:body resp)
+  ;;         body (json/parse-string json-string))
   (let [body (json/parse-string (slurp "test/tournaments-basketball.json") true)]
     (filtrar-brasil body))
   )
@@ -60,6 +75,5 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println (get-tournaments-soccer))
-  (println (get-tournaments-basketball))
+  (println (get-events 325))
   )

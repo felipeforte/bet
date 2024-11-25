@@ -25,7 +25,7 @@
     (if (:erro resultado)
       (para-json {:erro (:erro resultado)} 400)
       (para-json {:mensagem "Depósito realizado com sucesso!"
-                     :saldo-atual (:novo-saldo resultado)}))))
+                     :saldo-atual (:novo-saldo db/saldo)}))))
 
 (defn --apostar [requisicao]
   (let [body (retorna-json-body requisicao)
@@ -59,8 +59,6 @@
 (defroutes app-routes
   (GET "/" [] "Hello World")
   (GET "/saldo" [] (para-json {:saldo @db/saldo}))
-  (GET "/tipos-apostas" []
-    (para-json db/tipos-apostas))
   (POST "/depositar" requisicao
     (depositar requisicao))
   (POST "/apostar" requisicao

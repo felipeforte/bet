@@ -1,9 +1,6 @@
 (ns bet.db
   (:require [bet.core :as core]))
 
-(def tipos-apostas [{:id 1 :nome "overunder" :descricao "Total de pontos/gols acima ou abaixo do valor definido"}
-                    {:id 2 :nome "1X2" :descricao "Vitória do time 1, empate, ou vitória do time 2."}])
-
 (def saldo (atom 0))
 
 (def transacoes (atom []))
@@ -30,18 +27,34 @@
        :saldo-atual saldo})))
 
 (defn validar-valor-aposta [valor]
-  
-  )
+  (cond
+    (not (number? valor)) {:erro "O valor da aposta deve ser um número."}
+    (<= valor 0)          {:erro "O valor da aposta deve ser maior que zero."}
+    :else                 nil))
 
-(defn validar-odds-aposta [odds]
-  )
 
-(defn processar-aposta [valor odds evento]
-  (let [erro (validar-valor-aposta valor)]
-    (if erro
-      erro
-      {:mensagem "Aposta registrada com sucesso"
-       :saldo-atual saldo})))
+(defn validar-odds [odds]
+  (if (and (number? odds) (pos? odds))
+    nil
+    {:erro "As odds devem ser um número positivo."}))
+
+(defn validar-evento [evento eventos-disponiveis]
+  (if (contains? eventos-disponiveis evento)
+    nil
+    {:erro "Evento inválido ou indisponível para aposta."}))
+
+
+(defn processar-aposta [valor odds evento eventos-disponiveis saldo]
+  (let [erro-valor (validar-valor-aposta valor)
+        erro-odds (validar-odds odds)
+        erro-evento (validar-evento evento eventos-disponiveis)]
+    (cond
+      erro-valor erro-valor
+      erro-odds erro-odds
+      erro-evento erro-evento
+      :else {:mensagem "Aposta registrada com sucesso"
+             :saldo-atual saldo})))
+
 
 
 (defn apostar [valor odds evento]
