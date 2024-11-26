@@ -43,19 +43,32 @@
     ;;   (spit (str "test/" tournamentId "-events.json") json-string)
     ;; Comentar em produção
     (let [body (json/parse-string (slurp (str "test/" tournamentId "-events.json")) true)]
-      (:events body))
+      (into {} ;; Filtrar chaves irrelevantes 
+            (map (fn [[k {:keys [date participant1 participant2 eventStatus eventId]}]]
+                   [k {:date          date
+                       :participant1  participant1
+                       :participant2  participant2
+                       :eventStatus   eventStatus
+                       :eventId       eventId
+                       :tournamentId  tournamentId}]))
+            (:events body)))
   )
   )
 
 (defn get-event-odds [eventId]
-  (let [resp (client/get "https://betano.p.rapidapi.com/odds_betano" {:headers {:x-rapidapi-key api-key
-                                                                                :x-rapidapi-host "betano.p.rapidapi.com"}
-                                                                      :query-params {:eventId eventId
-                                                                                     :oddsFormat "decimal"
-                                                                                     :raw "false"}})
-        json-string (:body resp)
-        body (json/parse-string json-string)]
-    (spit (str "test/" eventId "-odds.json") body)))
+  ;; Descomentar em produção
+  ;; (let [resp (client/get "https://betano.p.rapidapi.com/odds_betano" {:headers {:x-rapidapi-key api-key
+  ;;                                                                               :x-rapidapi-host "betano.p.rapidapi.com"}
+  ;;                                                                     :query-params {:eventId eventId
+  ;;                                                                                    :oddsFormat "decimal"
+  ;;                                                                                    :raw "false"}})
+  ;;       json-string (:body resp)
+  ;;       body (json/parse-string json-string true)]
+  ;;   (spit (str "test/" eventId "-odds.json") json-string))
+  ;; Comentar em produção
+  (let [body (json/parse-string (slurp (str "test/" eventId "-odds.json")) true)]
+    body)
+  )
 
 (defn get-tournaments-basketball
   "Retorna JSON com lista de torneios de basquete"
@@ -75,5 +88,5 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println (get-events 325))
+  (println (get-event-odds "id100032548215167"))
   )
