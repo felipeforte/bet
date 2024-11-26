@@ -4,7 +4,8 @@
             [cheshire.core :as json]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [bet.db :as db]
-            [bet.core :as core]))
+            [bet.core :as core]
+            [ring.util.response :refer [response content-type]]))
 
 (defn para-json [conteudo & [status]]
   {:status (or status 200)
@@ -40,7 +41,20 @@
 
 
 (defroutes app-routes
-  (GET "/" [] "Hello World")
+  (GET "/" []
+    (-> (slurp "src/web/index.html")
+        (response)
+        (content-type "text/html")))
+  
+  (GET "/styles.css" []
+    (-> (slurp "src/web/styles.css")
+        (response)
+        (content-type "text/css")))
+  
+  (GET "/script.js" []
+    (-> (slurp "src/web/script.js")
+        (response)
+        (content-type "application/javascript")))
   (GET "/saldo" [] (para-json {:saldo @db/saldo}))
   (POST "/depositar" requisicao
     (depositar requisicao))
