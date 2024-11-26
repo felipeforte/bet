@@ -16,9 +16,6 @@
     :else                                   (swap! saldo + valor)
      ))
 
-(defn atualizar-saldo [saldo-atom valor]
-  (swap! saldo-atom + valor))
-
 (defn processar-deposito [valor]
   (let [erro (validar-deposito valor)]
     (if erro
@@ -30,30 +27,26 @@
   (cond
     (not (number? valor)) {:erro "O valor da aposta deve ser um número."}
     (<= valor 0)          {:erro "O valor da aposta deve ser maior que zero."}
+    (> valor @saldo)      {:erro "Saldo insuficiente."}
     :else                 nil))
 
 
-(defn validar-odds [odds]
-  (if (and (number? odds) (pos? odds))
-    nil
-    {:erro "As odds devem ser um número positivo."}))
+(defn validar-odds [odds])
 
-(defn validar-evento [evento eventos-disponiveis]
-  (if (contains? eventos-disponiveis evento)
-    nil
-    {:erro "Evento inválido ou indisponível para aposta."}))
+(defn validar-evento [evento])
 
 
-(defn processar-aposta [valor odds evento eventos-disponiveis saldo]
+(defn processar-aposta [valor odds evento]
   (let [erro-valor (validar-valor-aposta valor)
         erro-odds (validar-odds odds)
-        erro-evento (validar-evento evento eventos-disponiveis)]
+        erro-evento (validar-evento evento)]
     (cond
       erro-valor erro-valor
       erro-odds erro-odds
       erro-evento erro-evento
-      :else {:mensagem "Aposta registrada com sucesso"
-             :saldo-atual saldo})))
+      :else (do (swap! saldo - valor)
+              {:mensagem "Aposta registrada com sucesso"
+             :saldo-atual @saldo}))))
 
 
 

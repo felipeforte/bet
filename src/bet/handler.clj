@@ -25,9 +25,9 @@
     (if (:erro resultado)
       (para-json {:erro (:erro resultado)} 400)
       (para-json {:mensagem "Depósito realizado com sucesso!"
-                  :saldo-atual (:novo-saldo db/saldo)}))))
+                  :saldo-atual @db/saldo}))))
 
-(defn --apostar [requisicao]
+(defn apostar [requisicao]
   (let [body (retorna-json-body requisicao)
         valor (:valor body)
         odds (:odds body)
@@ -36,24 +36,7 @@
     (if (:erro resultado)
       (para-json {:erro (:erro resultado)} 400)
       (para-json {:mensagem "Aposta realizada com sucesso!"
-                  :saldo-atual (:novo-saldo resultado)}))))
-
-(defn apostar [requisicao]
-  (let [body (retorna-json-body requisicao)
-        valor (:valor body) ; Pega os dados
-        odds (:odds body)   ; da aposta
-        evento (:evento body)]
-    (if (or (not (number? valor)) (neg? valor)) ; Checa se n eh número ou negativo
-      (para-json {:erro "O valor da aposta deve ser um número maior que zero"} 400) ; Se n for número ou negativo, devolve erro
-      (let [novo-saldo (swap! db/saldo - valor)]
-        (if (neg? novo-saldo) ; Se o novo saldo for negativo (valor maior que em conta)
-          (do
-            (swap! db/saldo + valor) ; Desfaz a subtração
-            (para-json {:erro "Saldo insuficiente"} 400))
-          (do
-            ;; (registrar-transacao "aposta" valor)
-            (para-json {:mensagem "Aposta registrada com sucesso"
-                        :saldo-atual novo-saldo})))))))
+                  :saldo-atual @db/saldo}))))
 
 
 (defroutes app-routes
