@@ -8,38 +8,83 @@
 </head>
 <body>
     <header>
-      <h1>Bet Top</h1>
-      <div class="saldo">
-          <div class="saldo-text">
-              Saldo: R$ <span id="saldo-usuario">0,00</span>
-          </div>
-          <div class="container-deposito">
-            <input type="number" id="deposito-campo" placeholder="Digite um valor" min="1" step="1" />
-            <button id="btn-depositar">Depositar</button>
+        <h1>Bet Top</h1>
+        <div class="saldo">
+            <div class="saldo-text">
+                Saldo: R$ <span id="saldo-usuario">0,00</span>
+            </div>
+            <div class="container-deposito">
+                <input type="number" id="deposito-campo" placeholder="Digite um valor" min="1" step="1" />
+                <button id="btn-depositar">Depositar</button>
+            </div>
         </div>
-      </div>
     </header>
 
-    <div class="confrontos">
-        <!-- Exemplo de confronto -->
-        <div class="confronto">
-            <h3>Time A vs Time B</h3>
-            <div class="odds">
-                <div>Vitória A: <strong>1.5</strong></div>
-                <div>Empate: <strong>2.8</strong></div>
-                <div>Vitória B: <strong>3.1</strong></div>
-            </div>
-            <div class="tipo-aposta">
-                <label for="aposta-tipo">Escolha sua aposta:</label>
-                <select id="aposta-tipo">
-                    <option value="a">Vitória Time A</option>
-                    <option value="e">Empate</option>
-                    <option value="b">Vitória Time B</option>
-                </select>
-            </div>
-            <button class="btn-validar">Validar Aposta</button>
+    <div class="apostas">
+        <!-- Seleção de esporte -->
+        <div class="esporte">
+            <label>Escolha o esporte:</label>
+            <input type="radio" id="futebol" name="esporte" value="futebol" checked>
+            <label for="futebol">Futebol</label>
+            <input type="radio" id="basquete" name="esporte" value="basquete">
+            <label for="basquete">Basquete</label>
         </div>
-    </div>
+
+        <!-- Seleção de torneios -->
+        <div class="torneios hidden">
+            <label for="torneio">Selecione o torneio:</label>
+            <select id="torneio">
+                <option value="brasileirao">Brasileirão</option>
+                <option value="libertadores">Libertadores</option>
+                <option value="nba">NBA</option>
+            </select>
+        </div>
+
+        <!-- Seleção de eventos -->
+        <div class="eventos hidden">
+            <label for="eventos-lista">Escolha um evento:</label>
+            <select id="eventos-lista" size="5">
+                <option value="cuiaba-bahia">Cuiabá vs EC Bahia</option>
+                <option value="flamengo-palmeiras">Flamengo vs Palmeiras</option>
+                <option value="warriors-lakers">Golden State Warriors vs LA Lakers</option>
+            </select>
+        </div>
+
+        <!-- Mercados de apostas -->
+        <div class="mercados hidden">
+            <h2>Mercados Disponíveis</h2>
+            <!-- Full-Time Result -->
+            <fieldset>
+                <legend>Full-Time Result (1X2):</legend>
+                <label>
+                    <input type="radio" name="mercado" value="cuiaba-win">
+                    Cuiabá to win (1): 4.05
+                </label>
+                <label>
+                    <input type="radio" name="mercado" value="draw">
+                    Draw (X): 3.25
+                </label>
+                <label>
+                    <input type="radio" name="mercado" value="bahia-win">
+                    EC Bahia to win (2): 1.98
+                </label>
+            </fieldset>
+        
+            <!-- Over/Under (Goals) -->
+            <fieldset>
+                <legend>Over/Under (Goals):</legend>
+                <label>
+                    <input type="radio" name="mercado" value="over-2.5">
+                    Over 2.5: 2.18
+                </label>
+                <label>
+                    <input type="radio" name="mercado" value="under-2.5">
+                    Under 2.5: 1.70
+                </label>
+            </fieldset>
+        </div>
+        
+
     <script src="script.js"></script>
 </body>
 </html>

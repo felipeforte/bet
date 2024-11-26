@@ -1,4 +1,3 @@
-// Exemplo básico para conectar com a API
 document.querySelectorAll('.btn-validar').forEach(button => {
     button.addEventListener('click', () => {
         const tipoAposta = button.previousElementSibling.querySelector('#aposta-tipo').value;
@@ -65,3 +64,42 @@ function atualizarSaldo() {
 
 // Atualiza o saldo ao carregar a página
 atualizarSaldo();
+
+// Reseta todos os campos
+window.addEventListener('load', () => {
+    const radios = document.querySelectorAll('input[type="radio"]');
+    radios.forEach(radio => {
+        radio.checked = false;
+    });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const esporteRadios = document.querySelectorAll('input[name="esporte"]');
+    const torneioSelect = document.getElementById('torneio');
+    const eventosSelect = document.getElementById('eventos-lista');
+    const torneiosDiv = document.querySelector('.torneios');
+    const eventosDiv = document.querySelector('.eventos');
+    const mercadosDiv = document.querySelector('.mercados');
+
+    esporteRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) {
+                torneiosDiv.classList.remove('hidden');
+            }
+        });
+    });
+
+    torneioSelect.addEventListener('change', () => {
+        if (torneioSelect.value) {
+            eventosDiv.classList.remove('hidden');
+        }
+    });
+
+    eventosSelect.addEventListener('change', () => {
+        if (eventosSelect.value) {
+            mercadosDiv.classList.remove('hidden');
+        }
+    });
+});
+
+
