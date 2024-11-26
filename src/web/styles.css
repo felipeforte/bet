@@ -16,7 +16,7 @@
         margin-top: 10px;
         width: 50%;
         display: flex;
-        flex-direction: column; /* Align elements vertically */
+        flex-direction: column;
     }
     .saldo-text {
         text-align: left;
