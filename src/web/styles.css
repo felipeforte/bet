@@ -11,10 +11,21 @@
         position: sticky;
         top: 0;
     }
-    header .saldo {
+    .saldo {
         font-size: 1.2em;
         margin-top: 10px;
+        width: 50%;
+        display: flex;
+        flex-direction: column; /* Align elements vertically */
     }
+    .saldo-text {
+        text-align: left;
+    }
+    .container-deposito {
+        display: flex;
+        align-items: center;
+    }
+
     .confrontos {
         padding: 20px;
     }

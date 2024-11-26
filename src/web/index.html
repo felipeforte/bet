@@ -8,9 +8,18 @@
 </head>
 <body>
     <header>
-        <h1>Plataforma de Bet Funcional</h1>
-        <div class="saldo">Saldo: R$ <span id="saldo-usuario">100.00</span></div>
+      <h1>Bet Top</h1>
+      <div class="saldo">
+          <div class="saldo-text">
+              Saldo: R$ <span id="saldo-usuario">0,00</span>
+          </div>
+          <div class="container-deposito">
+            <input type="number" id="deposito-campo" placeholder="Digite um valor" min="1" step="1" />
+            <button id="btn-depositar">Depositar</button>
+        </div>
+      </div>
     </header>
+
     <div class="confrontos">
         <!-- Exemplo de confronto -->
         <div class="confronto">
