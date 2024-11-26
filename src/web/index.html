@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bet Funcional</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Plataforma de Bet Funcional</h1>
+        <div class="saldo">Saldo: R$ <span id="saldo-usuario">100.00</span></div>
+    </header>
+    <div class="confrontos">
+        <!-- Exemplo de confronto -->
+        <div class="confronto">
+            <h3>Time A vs Time B</h3>
+            <div class="odds">
+                <div>Vitória A: <strong>1.5</strong></div>
+                <div>Empate: <strong>2.8</strong></div>
+                <div>Vitória B: <strong>3.1</strong></div>
+            </div>
+            <div class="tipo-aposta">
+                <label for="aposta-tipo">Escolha sua aposta:</label>
+                <select id="aposta-tipo">
+                    <option value="a">Vitória Time A</option>
+                    <option value="e">Empate</option>
+                    <option value="b">Vitória Time B</option>
+                </select>
+            </div>
+            <button class="btn-validar">Validar Aposta</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
