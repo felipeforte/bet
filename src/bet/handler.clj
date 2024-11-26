@@ -27,16 +27,17 @@
       (para-json {:mensagem "Depósito realizado com sucesso!"
                      :saldo-atual (:novo-saldo db/saldo)}))))
 
-(defn --apostar [requisicao]
-  (let [body (retorna-json-body requisicao)
-        valor (:valor body)
-        odds (:odds body)
-        evento (:evento body)
-        resultado (db/processar-aposta valor odds evento)]
-    (if (:erro resultado)
-      (para-json {:erro (:erro resultado)} 400)
-      (para-json {:mensagem "Aposta realizada com sucesso!"
-                  :saldo-atual (:novo-saldo resultado)}))))
+;;(defn --apostar [requisicao]
+  ;;(let [body (retorna-json-body requisicao)
+    ;;    valor (:valor body)
+      ;;  odds (:odds body)
+        ;;evento (:evento body)
+        ;;resultado (db/processar-aposta valor odds evento 
+         ;;]
+    ;;(if (:erro resultado)
+      ;;(para-json {:erro (:erro resultado)} 400)
+      ;;(para-json {:mensagem "Aposta realizada com sucesso!"
+        ;;          :saldo-atual (:novo-saldo resultado)}))))
 
 (defn apostar [requisicao]
   (let [body (retorna-json-body requisicao)

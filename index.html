@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bet Funcional</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+        }
+        header .saldo {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        .confrontos {
+            padding: 20px;
+        }
+        .confronto {
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .confronto h3 {
+            margin: 0 0 10px;
+        }
+        .odds {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+        }
+        .tipo-aposta {
+            margin: 15px 0;
+        }
+        .btn-validar {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-validar:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Plataforma de Bet Funcional</h1>
+        <div class="saldo">Saldo: R$ <span id="saldo-usuario">100.00</span></div>
+    </header>
+    <div class="confrontos">
+        <!-- Exemplo de confronto -->
+        <div class="confronto">
+            <h3>Time A vs Time B</h3>
+            <div class="odds">
+                <div>Vitória A: <strong>1.5</strong></div>
+                <div>Empate: <strong>2.8</strong></div>
+                <div>Vitória B: <strong>3.1</strong></div>
+            </div>
+            <div class="tipo-aposta">
+                <label for="aposta-tipo">Escolha sua aposta:</label>
+                <select id="aposta-tipo">
+                    <option value="a">Vitória Time A</option>
+                    <option value="e">Empate</option>
+                    <option value="b">Vitória Time B</option>
+                </select>
+            </div>
+            <button class="btn-validar">Validar Aposta</button>
+        </div>
+    </div>
+    <script>
+        // Exemplo básico para conectar com a API
+        document.querySelectorAll('.btn-validar').forEach(button => {
+            button.addEventListener('click', () => {
+                const tipoAposta = button.previousElementSibling.querySelector('#aposta-tipo').value;
+                const saldoElemento = document.getElementById('saldo-usuario');
+                const saldoAtual = parseFloat(saldoElemento.textContent);
+
+                if (saldoAtual >= 10) { // Simulação de aposta
+                    fetch('http://localhost:3000/validar-aposta', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ tipoAposta })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert('Aposta validada com sucesso!');
+                        saldoElemento.textContent = (saldoAtual - 10).toFixed(2);
+                    })
+                    .catch(error => console.error('Erro ao validar aposta:', error));
+                } else {
+                    alert('Saldo insuficiente para apostar.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
