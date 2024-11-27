@@ -1,66 +1,185 @@
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-    }
-    header {
-        background-color: #007bff;
-        color: white;
-        padding: 15px;
-        text-align: center;
-        position: sticky;
-        top: 0;
-    }
-    .saldo {
-        font-size: 1.2em;
-        margin-top: 10px;
-        width: 50%;
-        display: flex;
-        flex-direction: column;
-    }
-    .saldo-text {
-        text-align: left;
-    }
-    .container-deposito {
-        display: flex;
-        align-items: center;
-    }
+/* Body and Global Styles */
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+    line-height: 1.6;
+}
 
-    .confrontos {
-        padding: 20px;
+/* Header */
+header {
+    background-color: #4caf50;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* Saldo Section */
+.saldo {
+    font-size: 1.2em;
+    margin: 20px auto;
+    padding: 10px;
+    width: 90%;
+    max-width: 600px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.saldo-text {
+    font-weight: bold;
+    color: #4caf50;
+}
+
+.container-deposito {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.container-deposito input {
+    padding: 8px;
+    font-size: 1em;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 50%;
+}
+
+.container-deposito button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.container-deposito button:hover {
+    background-color: #0056b3;
+}
+
+/* Confrontos Section */
+.confrontos {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.confronto {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #ffffff;
+    margin-bottom: 15px;
+    padding: 15px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.confronto:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.15);
+}
+
+.confronto h3 {
+    margin: 0 0 10px;
+    font-size: 1.2em;
+    color: #333;
+}
+
+/* Odds */
+.odds {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    gap: 10px;
+}
+
+.odds button {
+    flex: 1;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.odds button:hover {
+    background-color: #4caf50;
+    color: white;
+}
+
+/* Buttons */
+.btn-validar {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.btn-validar:hover {
+    background-color: #388e3c;
+    transform: translateY(-2px);
+}
+
+/* Hidden Elements */
+.hidden {
+    display: none;
+}
+
+/* Loading Indicator */
+.loading-indicator {
+    font-size: 0.9em;
+    color: #888;
+    margin-left: 10px;
+}
+
+.carregando {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.carregando:before {
+    content: '';
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4caf50;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
     }
-    .confronto {
-        border: 1px solid #ccc;
-        margin-bottom: 15px;
-        padding: 15px;
-        border-radius: 5px;
-        background-color: #f9f9f9;
+    100% {
+        transform: rotate(360deg);
     }
-    .confronto h3 {
-        margin: 0 0 10px;
-    }
-    .odds {
-        display: flex;
-        justify-content: space-around;
-        margin: 10px 0;
-    }
-    .tipo-aposta {
-        margin: 15px 0;
-    }
-    .btn-validar {
-        display: block;
-        width: 100%;
-        padding: 10px;
-        background-color: #28a745;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    .btn-validar:hover {
-        background-color: #218838;
-    }
-    .hidden {
-        display: none;
-    }
-    
+}

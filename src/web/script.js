@@ -1,3 +1,230 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const esporteRadios = document.querySelectorAll('input[name="esporte"]');
+    const esporteDiv = document.querySelector('.esporte');
+    const torneioSelect = document.getElementById('torneio');
+    const eventosSelect = document.getElementById('eventos-lista');
+    const torneiosDiv = document.querySelector('.torneios');
+    const eventosDiv = document.querySelector('.eventos');
+    const mercadosDiv = document.querySelector('.mercados');
+
+    /**
+     * Exibe ou oculta o indicador de carregamento em um contêiner.
+     * @param {HTMLElement} container - O contêiner onde o indicador será exibido.
+     * @param {boolean} isLoading - Se `true`, exibe o indicador; caso contrário, oculta.
+     */
+    const setLoadingState = (container, isLoading) => {
+        let loadingSpan = container.querySelector('.loading-indicator');
+    
+        if (!loadingSpan) {
+            loadingSpan = document.createElement('span');
+            loadingSpan.classList.add('loading-indicator');
+            loadingSpan.textContent = 'Carregando...';
+            loadingSpan.style.marginLeft = '10px';
+            loadingSpan.style.color = '#888';
+            container.appendChild(loadingSpan);
+        }
+    
+        loadingSpan.style.display = isLoading ? 'inline' : 'none';
+    };
+
+    /**
+     * Exibe ou oculta o indicador de carregamento em um contêiner.
+     * @param {HTMLElement} container - O contêiner onde o indicador será exibido.
+     * @param {boolean} isError - Se `true`, exibe o indicador; caso contrário, oculta.
+     * @param {String} msg - msg de erro 
+     */
+    const setErrorState = (container, isError, msg) => {
+        let errorSpan = container.querySelector('.error-indicator');
+    
+        if (!errorSpan) {
+            errorSpan = document.createElement('span');
+            errorSpan.classList.add('error-indicator');
+            errorSpan.style.color = 'red';
+            container.appendChild(errorSpan);
+        }
+    
+        // Update the error message only if 'msg' is provided
+        if (typeof msg !== 'undefined') {
+            errorSpan.textContent = msg;
+        }
+    
+        errorSpan.style.display = isError ? 'inline' : 'none';
+    };
+    
+
+    /**
+     * Busca torneios para o esporte selecionado.
+     * @param {string} selectedSport - O esporte selecionado.
+     */
+    const fetchTournaments = async (selectedSport) => {
+        setErrorState(esporteDiv,false);
+        setLoadingState(esporteDiv, true);
+        torneiosDiv.classList.add('hidden');
+        eventosDiv.classList.add('hidden');
+        mercadosDiv.classList.add('hidden');
+
+        try {
+            const response = await fetch(`http://localhost:3000/torneios?esporte=${selectedSport}`);
+            if (!response.ok) throw new Error('Erro ao buscar torneios.');
+
+            const data = await response.json();
+            torneioSelect.innerHTML = '<option value="" disabled selected>Selecione o torneio</option>';
+
+            if (data.error) {
+                setLoadingState(esporteDiv, false);
+                setErrorState(esporteDiv,true,data.error)
+                torneiosDiv.classList.add('hidden');
+                eventosDiv.classList.add('hidden');
+                mercadosDiv.classList.add('hidden');
+                return;
+            }
+
+            setErrorState(torneiosDiv,false);
+
+            Object.values(data).forEach((tournament) => {
+                const option = document.createElement('option');
+                option.value = tournament.tournamentId;
+                option.textContent = `${tournament.name} (${tournament.categoryName})`;
+                torneioSelect.appendChild(option);
+            });
+
+            setLoadingState(esporteDiv, false);
+            torneiosDiv.classList.remove('hidden');
+
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao carregar torneios. Tente novamente.');
+        } finally {
+            setLoadingState(esporteDiv, false);
+        }
+    };
+
+    /**
+     * Busca eventos para o torneio selecionado.
+     * @param {string} tournamentId - O ID do torneio selecionado.
+     */
+    const fetchEvents = async (tournamentId) => {
+        setErrorState(torneiosDiv,false);
+        setLoadingState(torneiosDiv, true);mercadosDiv
+        eventosDiv.classList.add('hidden');
+        mercadosDiv.classList.add('hidden');
+
+        try {
+            const response = await fetch(`http://localhost:3000/eventos?tournamentId=${tournamentId}`); 
+            if (!response.ok) throw new Error('Erro ao buscar eventos.');
+
+            const data = await response.json();
+            eventosSelect.innerHTML = '<option value="" disabled selected>Escolha um evento</option>';
+
+            if (data.error) {
+                setLoadingState(torneiosDiv, false);
+                setErrorState(torneiosDiv,true,data.error)
+                eventosDiv.classList.add('hidden');
+                mercadosDiv.classList.add('hidden');
+                return;
+            }
+
+            setErrorState(torneiosDiv,false);
+
+            Object.values(data).forEach((event) => {
+                const option = document.createElement('option');
+                option.value = event.eventId;
+                option.textContent = `${event.participant1} vs ${event.participant2} - ${event.date}`;
+                eventosSelect.appendChild(option);
+            });
+
+            eventosDiv.classList.remove('hidden');
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao carregar eventos. Tente novamente.');
+        } finally {
+            setLoadingState(torneiosDiv, false);
+        }
+    };
+
+    /**
+     * Busca mercados para o evento selecionado.
+     * @param {string} eventId - O ID do evento selecionado.
+     */
+    const fetchMarkets = async (eventId) => {
+        setErrorState(eventosDiv,false);
+        setLoadingState(eventosDiv, true);
+        mercadosDiv.classList.add('hidden');
+
+        try {
+            const response = await fetch(`http://localhost:3000/odds?eventId=${eventId}`);
+            if (!response.ok) throw new Error('Erro ao buscar mercados.');
+
+            const data = await response.json();
+            if (!data || Object.keys(data).length === 0) {
+                alert('Nenhum mercado disponível para este evento.');
+                return;
+            }
+
+            if (data.error) {
+                setLoadingState(eventosDiv, false);
+                setErrorState(eventosDiv,true,data.error)
+                mercadosDiv.classList.add('hidden');
+                return;
+            }
+
+            setErrorState(eventosDiv,false);
+
+            // Adiciona mercados ao DOM
+            Object.values(data.markets).forEach((market) => {
+                const fieldset = document.createElement('fieldset');
+                const legend = document.createElement('legend');
+                legend.textContent = `${market.marketName} (${market.handicap})`;
+                fieldset.appendChild(legend);
+
+                Object.values(market.outcomes).forEach((outcome) => {
+                    const label = document.createElement('label');
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `mercado-${market.marketName}`;
+                    input.value = outcome.outcomeName.toLowerCase().replace(/\s+/g, '-');
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(`${outcome.outcomeName} (${outcome.price})`));
+                    fieldset.appendChild(label);
+                });
+
+                mercadosDiv.appendChild(fieldset);
+            });
+
+            mercadosDiv.classList.remove('hidden');
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao carregar mercados. Tente novamente.');
+        } finally {
+            setLoadingState(eventosDiv, false);
+        }
+    };
+
+    // Event listeners
+    esporteRadios.forEach((radio) => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) {
+                const selectedSport = document.querySelector('input[name="esporte"]:checked').value;
+                fetchTournaments(selectedSport);
+            }
+        });
+    });
+
+    torneioSelect.addEventListener('change', () => {
+        const tournamentId = torneioSelect.value;
+        if (tournamentId) {
+            fetchEvents(tournamentId);
+        }
+    });
+
+    eventosSelect.addEventListener('change', () => {
+        const eventId = eventosSelect.value;
+        if (eventId) {
+            fetchMarkets(eventId);
+        }
+    });
+});
+
 document.querySelectorAll('.btn-validar').forEach(button => {
     button.addEventListener('click', () => {
         const tipoAposta = button.previousElementSibling.querySelector('#aposta-tipo').value;
@@ -72,111 +299,3 @@ window.addEventListener('load', () => {
         radio.checked = false;
     });
 });
-
-document.addEventListener('DOMContentLoaded', () => {
-    const esporteRadios = document.querySelectorAll('input[name="esporte"]');
-    const torneioSelect = document.getElementById('torneio');
-    const eventosSelect = document.getElementById('eventos-lista');
-    const torneiosDiv = document.querySelector('.torneios');
-    const eventosDiv = document.querySelector('.eventos');
-    const mercadosDiv = document.querySelector('.mercados');
-    
-    // Definir a div de erro fora das funções
-    const errorMessageSpan = document.createElement('span');  // Div for error message
-
-    // Function to fetch tournaments based on selected sport
-    const fetchTournaments = async (selectedSport) => {
-        try {
-            const response = await fetch(`http://localhost:3000/torneios?esporte=${selectedSport}`);
-            if (!response.ok) {
-                throw new Error("Failed to fetch tournaments");
-            }
-
-            const data = await response.json();
-
-            // Clear existing options in the tournament dropdown
-            torneioSelect.innerHTML = '<option value="" disabled selected>Selecione o torneio</option>';
-
-            // Populate the tournament dropdown
-            Object.values(data).forEach((tournament) => {
-                const option = document.createElement("option");
-                option.value = tournament.tournamentId;
-                option.textContent = `${tournament.name} (${tournament.categoryName})`;
-                torneioSelect.appendChild(option);
-            });
-
-            torneiosDiv.classList.remove('hidden');
-        } catch (error) {
-            console.error("Error fetching tournaments:", error);
-            alert("Erro ao carregar torneios. Tente novamente.");
-        }
-    };
-
-    // Function to fetch events based on selected tournament
-    const fetchEvents = async (tournamentId) => {
-        try {
-            const response = await fetch(`http://localhost:3000/eventos?tournamentId=${tournamentId}`);
-            const data = await response.json();
-
-            // Check if there's an error in the response
-            if (data.error) {
-                // Show error message next to the torneioSelect dropdown
-                errorMessageSpan.textContent = data.error;
-                errorMessageSpan.style.color = 'red';
-                torneioSelect.parentNode.appendChild(errorMessageSpan);  // Add the error message div after the select
-                eventosDiv.classList.add('hidden');  // Hide events div if there's an error
-                return;  // Exit the function if there's an error
-            }
-
-            // If no error, clear the error message (if any)
-            errorMessageSpan.textContent = '';
-            errorMessageSpan.style.color = ''; // Reset error styling
-
-            // Clear existing options in the event dropdown
-            eventosSelect.innerHTML = '<option value="" disabled selected>Escolha um evento</option>';
-
-            // Populate the events dropdown
-            Object.values(data).forEach((event) => {
-                const option = document.createElement("option");
-                option.value = event.eventId;
-                option.textContent = `${event.participant1} vs ${event.participant2} - ${event.date}`;
-                eventosSelect.appendChild(option);
-            });
-
-            // Show the eventos container
-            eventosDiv.classList.remove('hidden');
-        } catch (error) {
-            console.error("Error fetching events:", error);
-            alert("Erro ao carregar eventos. Tente novamente.");
-        }
-    };
-
-    // Event listener for changing sport
-    esporteRadios.forEach(radio => {
-        radio.addEventListener('change', () => {
-            if (radio.checked) {
-                const selectedSport = document.querySelector('input[name="esporte"]:checked').value;
-                fetchTournaments(selectedSport);
-            }
-        });
-    });
-
-    // Event listener for changing tournament
-    torneioSelect.addEventListener('change', () => {
-        const tournamentId = torneioSelect.value;
-        if (tournamentId) {
-            fetchEvents(tournamentId);  // Fetch events based on selected tournament
-        }
-    });
-
-    // Event listener for changing event
-    eventosSelect.addEventListener('change', () => {
-        if (eventosSelect.value) {
-            mercadosDiv.classList.remove('hidden');
-        }
-    });
-});
-
-
-
-

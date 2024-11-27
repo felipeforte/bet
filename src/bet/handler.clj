@@ -69,6 +69,13 @@
       :else
       (para-json (core/get-eventos tournamentId))))
   
+  (GET "/odds" [eventId]
+    (cond
+      (nil? eventId)
+      (para-json {:error "Parâmetro 'eventId' é necessário."})
+      :else
+      (para-json (core/get-evento-odds eventId))))
+  
   (GET "/saldo" [] (para-json {:saldo @db/saldo}))
   (POST "/depositar" requisicao
     (depositar requisicao))
