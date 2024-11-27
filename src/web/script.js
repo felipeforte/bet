@@ -81,25 +81,95 @@ document.addEventListener('DOMContentLoaded', () => {
     const eventosDiv = document.querySelector('.eventos');
     const mercadosDiv = document.querySelector('.mercados');
 
+    // Make the main function async to handle the fetch request
+    const fetchTournaments = async (selectedSport) => {
+        try {
+            const response = await fetch(`http://localhost:3000/torneios?esporte=${selectedSport}`);
+            if (!response.ok) {
+                throw new Error("Falha na resposta do servidor");
+            }
+
+            const data = await response.json();
+
+            // Limpar opções, pra não sobrepor nas mudanças
+            torneioSelect.innerHTML = '<option value="" disabled selected>Selecione o torneio</option>';
+
+            // Colocar elementos em dropdown
+            Object.values(data).forEach((tournament) => {
+                const option = document.createElement("option");
+                option.value = tournament.tournamentId;
+                option.textContent = `${tournament.name} (${tournament.categoryName})`;
+                torneioSelect.appendChild(option);
+            });
+
+            // Mostra o container de elementos
+            torneiosDiv.classList.remove('hidden');
+        } catch (error) {
+            console.error("Falha em requisitar dados de torneios:", error);
+            alert("Erro ao carregar torneios. Tente novamente.");
+        }
+    };
+
+    // Event listener for changing sports
     esporteRadios.forEach(radio => {
         radio.addEventListener('change', () => {
             if (radio.checked) {
-                torneiosDiv.classList.remove('hidden');
+                const selectedSport = document.querySelector('input[name="esporte"]:checked').value;
+                fetchTournaments(selectedSport);
             }
         });
     });
 
+    // Event listener for selecting a tournament
     torneioSelect.addEventListener('change', () => {
         if (torneioSelect.value) {
             eventosDiv.classList.remove('hidden');
         }
     });
 
+    // Event listener for selecting an event
     eventosSelect.addEventListener('change', () => {
         if (eventosSelect.value) {
             mercadosDiv.classList.remove('hidden');
         }
     });
 });
+
+
+document.querySelectorAll('input[name="esporte"]').forEach((radio) => {
+    radio.addEventListener("change", async () => {
+        const selectedSport = document.querySelector('input[name="esporte"]:checked').value;
+        const torneioDropdown = document.getElementById("torneio");
+        const torneioContainer = document.querySelector(".torneios");
+
+        // Clear existing options
+        torneioDropdown.innerHTML = '<option value="" disabled selected>Selecione o torneio</option>';
+
+        try {
+            // Fetch tournaments from the API
+            const response = await fetch(`http://localhost:3000/torneios?esporte=${selectedSport}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch tournaments");
+            }
+
+            const data = await response.json();
+
+            // Populate the dropdown
+            Object.values(data).forEach((tournament) => {
+                const option = document.createElement("option");
+                option.value = tournament.tournamentId;
+                option.textContent = `${tournament.name} (${tournament.categoryName})`;
+                torneioDropdown.appendChild(option);
+            });
+
+            // Make the dropdown visible
+            torneioContainer.classList.remove("hidden");
+        } catch (error) {
+            console.error("Error fetching tournaments:", error);
+            alert("Erro ao carregar torneios. Tente novamente.");
+        }
+    });
+});
+
 
 

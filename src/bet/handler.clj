@@ -55,6 +55,20 @@
     (-> (slurp "src/web/script.js")
         (response)
         (content-type "application/javascript")))
+  
+  (GET "/torneios" [esporte]
+    (cond
+          (= esporte "futebol") (para-json (core/get-torneios "soccer")) ;; Chama função para "futebol"
+          (= esporte "basquete") (para-json (core/get-torneios "basketball")) ;; Chama função para "basquete"
+          :else (para-json {:error "Esporte inválido. Use 'futebol' ou 'basquete'."})))
+  
+  (GET "/eventos" [tournamentId]
+    (cond
+      (nil? tournamentId)
+      (para-json {:error "Parâmetro 'tournamentId' é necessário."})
+      :else
+      (para-json (core/get-eventos tournamentId))))
+  
   (GET "/saldo" [] (para-json {:saldo @db/saldo}))
   (POST "/depositar" requisicao
     (depositar requisicao))
