@@ -134,10 +134,11 @@
     (if cache
       cache
       (let [resp (api-get "torneios" sport) ;; Caso não tenha cache válido, faz a chamada à API
-            body (assoc (json/parse-string (:body resp) true) :timestamp (System/currentTimeMillis))]
+            body (assoc (json/parse-string (:body resp) true) :timestamp (System/currentTimeMillis))
+            filtrado (filtrar-torneios body)]
         (println "Buscando torneios via API externa...")
-        (spit (str "cache/tournaments-" sport ".json") (json/generate-string (filtrar-torneios body) true)) ;; Salva em arquivo com timestamp
-        ))))
+        (spit (str "cache/tournaments-" sport ".json") (json/generate-string filtrado true)) ;; Salva em arquivo com timestamp
+        filtrado))))
 
 (defn get-eventos
   "Retorna a lista de eventos a partir de certo torneio, usando cache ou API"
@@ -166,5 +167,6 @@
   "I don't do a whole lot ... yet."
   [& args]
   ;; (println (get-event-odds "id100032548215167"))
-  (println (get-evento-odds "id100039048424615")))
+  (println (get-evento-odds "id100039048424615"))
+  (println (get-torneios "soccer")))
   

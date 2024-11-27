@@ -80,21 +80,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const torneiosDiv = document.querySelector('.torneios');
     const eventosDiv = document.querySelector('.eventos');
     const mercadosDiv = document.querySelector('.mercados');
+    
+    // Definir a div de erro fora das funções
+    const errorMessageSpan = document.createElement('span');  // Div for error message
 
-    // Make the main function async to handle the fetch request
+    // Function to fetch tournaments based on selected sport
     const fetchTournaments = async (selectedSport) => {
         try {
             const response = await fetch(`http://localhost:3000/torneios?esporte=${selectedSport}`);
             if (!response.ok) {
-                throw new Error("Falha na resposta do servidor");
+                throw new Error("Failed to fetch tournaments");
             }
 
             const data = await response.json();
 
-            // Limpar opções, pra não sobrepor nas mudanças
+            // Clear existing options in the tournament dropdown
             torneioSelect.innerHTML = '<option value="" disabled selected>Selecione o torneio</option>';
 
-            // Colocar elementos em dropdown
+            // Populate the tournament dropdown
             Object.values(data).forEach((tournament) => {
                 const option = document.createElement("option");
                 option.value = tournament.tournamentId;
@@ -102,15 +105,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 torneioSelect.appendChild(option);
             });
 
-            // Mostra o container de elementos
             torneiosDiv.classList.remove('hidden');
         } catch (error) {
-            console.error("Falha em requisitar dados de torneios:", error);
+            console.error("Error fetching tournaments:", error);
             alert("Erro ao carregar torneios. Tente novamente.");
         }
     };
 
-    // Event listener for changing sports
+    // Function to fetch events based on selected tournament
+    const fetchEvents = async (tournamentId) => {
+        try {
+            const response = await fetch(`http://localhost:3000/eventos?tournamentId=${tournamentId}`);
+            const data = await response.json();
+
+            // Check if there's an error in the response
+            if (data.error) {
+                // Show error message next to the torneioSelect dropdown
+                errorMessageSpan.textContent = data.error;
+                errorMessageSpan.style.color = 'red';
+                torneioSelect.parentNode.appendChild(errorMessageSpan);  // Add the error message div after the select
+                eventosDiv.classList.add('hidden');  // Hide events div if there's an error
+                return;  // Exit the function if there's an error
+            }
+
+            // If no error, clear the error message (if any)
+            errorMessageSpan.textContent = '';
+            errorMessageSpan.style.color = ''; // Reset error styling
+
+            // Clear existing options in the event dropdown
+            eventosSelect.innerHTML = '<option value="" disabled selected>Escolha um evento</option>';
+
+            // Populate the events dropdown
+            Object.values(data).forEach((event) => {
+                const option = document.createElement("option");
+                option.value = event.eventId;
+                option.textContent = `${event.participant1} vs ${event.participant2} - ${event.date}`;
+                eventosSelect.appendChild(option);
+            });
+
+            // Show the eventos container
+            eventosDiv.classList.remove('hidden');
+        } catch (error) {
+            console.error("Error fetching events:", error);
+            alert("Erro ao carregar eventos. Tente novamente.");
+        }
+    };
+
+    // Event listener for changing sport
     esporteRadios.forEach(radio => {
         radio.addEventListener('change', () => {
             if (radio.checked) {
@@ -120,14 +161,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Event listener for selecting a tournament
+    // Event listener for changing tournament
     torneioSelect.addEventListener('change', () => {
-        if (torneioSelect.value) {
-            eventosDiv.classList.remove('hidden');
+        const tournamentId = torneioSelect.value;
+        if (tournamentId) {
+            fetchEvents(tournamentId);  // Fetch events based on selected tournament
         }
     });
 
-    // Event listener for selecting an event
+    // Event listener for changing event
     eventosSelect.addEventListener('change', () => {
         if (eventosSelect.value) {
             mercadosDiv.classList.remove('hidden');
@@ -135,41 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-
-document.querySelectorAll('input[name="esporte"]').forEach((radio) => {
-    radio.addEventListener("change", async () => {
-        const selectedSport = document.querySelector('input[name="esporte"]:checked').value;
-        const torneioDropdown = document.getElementById("torneio");
-        const torneioContainer = document.querySelector(".torneios");
-
-        // Clear existing options
-        torneioDropdown.innerHTML = '<option value="" disabled selected>Selecione o torneio</option>';
-
-        try {
-            // Fetch tournaments from the API
-            const response = await fetch(`http://localhost:3000/torneios?esporte=${selectedSport}`);
-            if (!response.ok) {
-                throw new Error("Failed to fetch tournaments");
-            }
-
-            const data = await response.json();
-
-            // Populate the dropdown
-            Object.values(data).forEach((tournament) => {
-                const option = document.createElement("option");
-                option.value = tournament.tournamentId;
-                option.textContent = `${tournament.name} (${tournament.categoryName})`;
-                torneioDropdown.appendChild(option);
-            });
-
-            // Make the dropdown visible
-            torneioContainer.classList.remove("hidden");
-        } catch (error) {
-            console.error("Error fetching tournaments:", error);
-            alert("Erro ao carregar torneios. Tente novamente.");
-        }
-    });
-});
 
 
 
