@@ -10,7 +10,7 @@ body {
 
 /* Header */
 header {
-    background-color: #4caf50;
+    background-color: #d4240d;
     color: white;
     padding: 15px;
     text-align: center;
@@ -20,6 +20,7 @@ header {
     z-index: 1000;
     font-size: 1.5em;
     font-weight: bold;
+    
 }
 
 /* Saldo Section */
@@ -39,7 +40,7 @@ header {
 
 .saldo-text {
     font-weight: bold;
-    color: #4caf50;
+    color: #dfd004;
 }
 
 .container-deposito {
