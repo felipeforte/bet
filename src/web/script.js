@@ -170,16 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
             setErrorState(eventosDiv, false);
     
-            // Clear previous content
+            // Limpa o conteúdo anterior
             mercadosDiv.innerHTML = '';
     
-            // Get or create the dropdown elements
+            // Cria ou obtém os elementos do formulário
+            let form = document.getElementById('bet-form');
             let betCategorySelect = document.getElementById('bet-category');
             let betOptionSelect = document.getElementById('bet-option');
+            let betAmountInput = document.getElementById('bet-amount');
     
-            // If the selects don't exist, create and append them
-            if (!betCategorySelect) {
-                const form = document.createElement('form');
+            // Se o formulário não existir, cria e adiciona os elementos
+            if (!form) {
+                form = document.createElement('form');
                 form.id = 'bet-form';
     
                 const labelCategory = document.createElement('label');
@@ -198,29 +200,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 betOptionSelect.id = 'bet-option';
                 betOptionSelect.name = 'bet-option';
     
-                // Optionally, add a submit button
+                // **Campo de entrada para o valor da aposta**
+                const labelAmount = document.createElement('label');
+                labelAmount.setAttribute('for', 'bet-amount');
+                labelAmount.textContent = 'Valor da Aposta:';
+    
+                betAmountInput = document.createElement('input');
+                betAmountInput.type = 'number';
+                betAmountInput.id = 'bet-amount';
+                betAmountInput.name = 'bet-amount';
+                betAmountInput.min = '1'; // Valor mínimo da aposta
+                betAmountInput.step = '0.01'; // Permite centavos
+    
+                // Botão de submissão
                 const submitButton = document.createElement('button');
                 submitButton.type = 'submit';
                 submitButton.textContent = 'Fazer Aposta';
     
-                // Append elements to the form
+                // Adiciona os elementos ao formulário
                 form.appendChild(labelCategory);
                 form.appendChild(betCategorySelect);
                 form.appendChild(document.createElement('br'));
                 form.appendChild(labelOption);
                 form.appendChild(betOptionSelect);
                 form.appendChild(document.createElement('br'));
+                form.appendChild(labelAmount);
+                form.appendChild(betAmountInput);
+                form.appendChild(document.createElement('br'));
                 form.appendChild(submitButton);
     
-                // Append form to mercadosDiv
+                // Adiciona o formulário ao mercadosDiv
                 mercadosDiv.appendChild(form);
             } else {
-                // Clear previous options
+                // Limpa as opções anteriores
                 betCategorySelect.innerHTML = '';
                 betOptionSelect.innerHTML = '';
+                betAmountInput.value = '';
             }
     
-            // Create default options for both selects
+            // Cria as opções padrão para os selects
             const defaultCategoryOption = document.createElement('option');
             defaultCategoryOption.value = '';
             defaultCategoryOption.disabled = true;
@@ -235,40 +253,72 @@ document.addEventListener('DOMContentLoaded', () => {
             defaultOptionOption.textContent = 'Selecione uma opção';
             betOptionSelect.appendChild(defaultOptionOption);
     
-            // Create a mapping of markets to their outcomes
+            // Mapeamento dos mercados para seus resultados
             const marketsMap = {};
     
-            // Iterate over data.markets (which is an object)
+            // Itera sobre data.markets (que é um objeto)
             Object.values(data.markets).forEach((market) => {
-                // Add market to the betCategorySelect
+                // Adiciona o mercado ao betCategorySelect
                 const option = document.createElement('option');
-                option.value = market.marketName + '|' + market.handicap; // Combine market name and handicap as a key
+                option.value = market.marketName + '|' + market.handicap; // Combina o nome do mercado e handicap como chave
                 option.textContent = `${market.marketName} (${market.handicap || 'N/A'})`;
                 betCategorySelect.appendChild(option);
     
-                // Store the outcomes for this market using the combined key
+                // Armazena os resultados para este mercado usando a chave combinada
                 const marketKey = market.marketName + '|' + market.handicap;
                 marketsMap[marketKey] = market.outcomes;
             });
     
-            // Event listener to update bet options when a market is selected
+            // Remove event listeners anteriores para evitar múltiplas adições
+            betCategorySelect.replaceWith(betCategorySelect.cloneNode(true));
+            betCategorySelect = document.getElementById('bet-category');
+    
+            // Listener para atualizar as opções de aposta quando um mercado é selecionado
             betCategorySelect.addEventListener('change', () => {
                 const selectedMarketKey = betCategorySelect.value;
     
-                // Clear previous options
+                // Limpa as opções anteriores
                 betOptionSelect.innerHTML = '';
                 betOptionSelect.appendChild(defaultOptionOption.cloneNode(true));
     
                 const outcomes = marketsMap[selectedMarketKey];
                 if (outcomes) {
-                    // Iterate over the outcomes (which is an object)
+                    // Itera sobre os resultados (que é um objeto)
                     Object.values(outcomes).forEach((outcome) => {
                         const option = document.createElement('option');
-                        option.value = outcome.outcomeName; // Use outcomeName or outcomeId
+                        option.value = outcome.outcomeName; // Pode usar outcomeId se necessário
                         option.textContent = `${outcome.outcomeName} (${outcome.price})`;
                         betOptionSelect.appendChild(option);
                     });
                 }
+            });
+    
+            // Listener para o formulário de aposta
+            form.addEventListener('submit', (event) => {
+                event.preventDefault(); // Previne o comportamento padrão do formulário
+    
+                const selectedMarket = betCategorySelect.value;
+                const selectedOption = betOptionSelect.value;
+                const betAmount = betAmountInput.value;
+    
+                if (!selectedMarket || !selectedOption || !betAmount) {
+                    alert('Por favor, selecione um mercado, uma opção e insira o valor da aposta.');
+                    return;
+                }
+    
+                if (betAmount <= 0) {
+                    alert('O valor da aposta deve ser maior que zero.');
+                    return;
+                }
+    
+                // Processa a aposta
+                console.log('Aposta:', {
+                    mercado: selectedMarket,
+                    opção: selectedOption,
+                    valor: betAmount,
+                });
+    
+                // Aqui você pode adicionar a lógica para enviar a aposta ao servidor ou processá-la conforme necessário
             });
     
             mercadosDiv.classList.remove('hidden');
@@ -313,7 +363,7 @@ document.querySelectorAll('.btn-validar').forEach(button => {
         const saldoElemento = document.getElementById('saldo-usuario');
         const saldoAtual = parseFloat(saldoElemento.textContent);
 
-        if (saldoAtual >= 10) { // Simulação de aposta
+        if (saldoAtual >= 10) {
             fetch('http://localhost:3000/validar-aposta', {
                 method: 'POST',
                 headers: {

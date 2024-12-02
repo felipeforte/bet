@@ -8,7 +8,7 @@
 
 (def disponiveis {:torneios #{325, 1562}})
 
-(def api-key "3c5236df1amshaa0e2eab58f8f9ep10eb38jsn96d98a03e252")
+(def api-key "99b5e27786msh32148b7670e235bp1802f3jsn8d40ad589bf5")
 
 (def cache-tempo (* 3600 1000 6)) ;; Definindo 6h em milisegundos para tempo de renovação de cache da API
 
