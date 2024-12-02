@@ -147,50 +147,130 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} eventId - O ID do evento selecionado.
      */
     const fetchMarkets = async (eventId) => {
-        setErrorState(eventosDiv,false);
+        setErrorState(eventosDiv, false);
         setLoadingState(eventosDiv, true);
         mercadosDiv.classList.add('hidden');
-
+    
         try {
             const response = await fetch(`http://localhost:3000/odds?eventId=${eventId}`);
             if (!response.ok) throw new Error('Erro ao buscar mercados.');
-
+    
             const data = await response.json();
             if (!data || Object.keys(data).length === 0) {
                 alert('Nenhum mercado disponível para este evento.');
                 return;
             }
-
+    
             if (data.error) {
                 setLoadingState(eventosDiv, false);
-                setErrorState(eventosDiv,true,data.error)
+                setErrorState(eventosDiv, true, data.error);
                 mercadosDiv.classList.add('hidden');
                 return;
             }
-
-            setErrorState(eventosDiv,false);
-
-            // Adiciona mercados ao DOM
+    
+            setErrorState(eventosDiv, false);
+    
+            // Clear previous content
+            mercadosDiv.innerHTML = '';
+    
+            // Get or create the dropdown elements
+            let betCategorySelect = document.getElementById('bet-category');
+            let betOptionSelect = document.getElementById('bet-option');
+    
+            // If the selects don't exist, create and append them
+            if (!betCategorySelect) {
+                const form = document.createElement('form');
+                form.id = 'bet-form';
+    
+                const labelCategory = document.createElement('label');
+                labelCategory.setAttribute('for', 'bet-category');
+                labelCategory.textContent = 'Selecione um Mercado:';
+    
+                betCategorySelect = document.createElement('select');
+                betCategorySelect.id = 'bet-category';
+                betCategorySelect.name = 'bet-category';
+    
+                const labelOption = document.createElement('label');
+                labelOption.setAttribute('for', 'bet-option');
+                labelOption.textContent = 'Selecione uma Opção:';
+    
+                betOptionSelect = document.createElement('select');
+                betOptionSelect.id = 'bet-option';
+                betOptionSelect.name = 'bet-option';
+    
+                // Optionally, add a submit button
+                const submitButton = document.createElement('button');
+                submitButton.type = 'submit';
+                submitButton.textContent = 'Fazer Aposta';
+    
+                // Append elements to the form
+                form.appendChild(labelCategory);
+                form.appendChild(betCategorySelect);
+                form.appendChild(document.createElement('br'));
+                form.appendChild(labelOption);
+                form.appendChild(betOptionSelect);
+                form.appendChild(document.createElement('br'));
+                form.appendChild(submitButton);
+    
+                // Append form to mercadosDiv
+                mercadosDiv.appendChild(form);
+            } else {
+                // Clear previous options
+                betCategorySelect.innerHTML = '';
+                betOptionSelect.innerHTML = '';
+            }
+    
+            // Create default options for both selects
+            const defaultCategoryOption = document.createElement('option');
+            defaultCategoryOption.value = '';
+            defaultCategoryOption.disabled = true;
+            defaultCategoryOption.selected = true;
+            defaultCategoryOption.textContent = 'Selecione um mercado';
+            betCategorySelect.appendChild(defaultCategoryOption);
+    
+            const defaultOptionOption = document.createElement('option');
+            defaultOptionOption.value = '';
+            defaultOptionOption.disabled = true;
+            defaultOptionOption.selected = true;
+            defaultOptionOption.textContent = 'Selecione uma opção';
+            betOptionSelect.appendChild(defaultOptionOption);
+    
+            // Create a mapping of markets to their outcomes
+            const marketsMap = {};
+    
+            // Iterate over data.markets (which is an object)
             Object.values(data.markets).forEach((market) => {
-                const fieldset = document.createElement('fieldset');
-                const legend = document.createElement('legend');
-                legend.textContent = `${market.marketName} (${market.handicap})`;
-                fieldset.appendChild(legend);
-
-                Object.values(market.outcomes).forEach((outcome) => {
-                    const label = document.createElement('label');
-                    const input = document.createElement('input');
-                    input.type = 'radio';
-                    input.name = `mercado-${market.marketName}`;
-                    input.value = outcome.outcomeName.toLowerCase().replace(/\s+/g, '-');
-                    label.appendChild(input);
-                    label.appendChild(document.createTextNode(`${outcome.outcomeName} (${outcome.price})`));
-                    fieldset.appendChild(label);
-                });
-
-                mercadosDiv.appendChild(fieldset);
+                // Add market to the betCategorySelect
+                const option = document.createElement('option');
+                option.value = market.marketName + '|' + market.handicap; // Combine market name and handicap as a key
+                option.textContent = `${market.marketName} (${market.handicap || 'N/A'})`;
+                betCategorySelect.appendChild(option);
+    
+                // Store the outcomes for this market using the combined key
+                const marketKey = market.marketName + '|' + market.handicap;
+                marketsMap[marketKey] = market.outcomes;
             });
-
+    
+            // Event listener to update bet options when a market is selected
+            betCategorySelect.addEventListener('change', () => {
+                const selectedMarketKey = betCategorySelect.value;
+    
+                // Clear previous options
+                betOptionSelect.innerHTML = '';
+                betOptionSelect.appendChild(defaultOptionOption.cloneNode(true));
+    
+                const outcomes = marketsMap[selectedMarketKey];
+                if (outcomes) {
+                    // Iterate over the outcomes (which is an object)
+                    Object.values(outcomes).forEach((outcome) => {
+                        const option = document.createElement('option');
+                        option.value = outcome.outcomeName; // Use outcomeName or outcomeId
+                        option.textContent = `${outcome.outcomeName} (${outcome.price})`;
+                        betOptionSelect.appendChild(option);
+                    });
+                }
+            });
+    
             mercadosDiv.classList.remove('hidden');
         } catch (error) {
             console.error(error);
@@ -199,6 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setLoadingState(eventosDiv, false);
         }
     };
+    
+    
 
     // Event listeners
     esporteRadios.forEach((radio) => {
