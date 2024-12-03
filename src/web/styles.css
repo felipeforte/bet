@@ -39,6 +39,7 @@ header {
 }
 
 .saldo-text {
+    margin: auto;
     font-weight: bold;
     color: #dfd004;
 }

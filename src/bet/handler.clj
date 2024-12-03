@@ -30,7 +30,7 @@
 
 (defn apostar [requisicao]
   (let [body (retorna-json-body requisicao)
-        valor (:valor body)
+        valor (:valor (:valor body))
         odds (:odds body)
         evento (:evento body)
         resultado (db/processar-aposta valor odds evento)]
