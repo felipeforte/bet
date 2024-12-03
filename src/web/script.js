@@ -3,7 +3,7 @@ const apiService = {
         const response = await fetch(`http://localhost:3000/torneios?esporte=${selectedSport}`);
         if (!response.ok) throw new Error('Erro ao buscar torneios.');
         const data = await response.json();
-        if (data.error) throw new Error(data.error);
+        if (data.erro) throw new Error(data.erro);
         return data;
     },
 
@@ -11,7 +11,7 @@ const apiService = {
         const response = await fetch(`http://localhost:3000/eventos?tournamentId=${tournamentId}`);
         if (!response.ok) throw new Error('Erro ao buscar eventos.');
         const data = await response.json();
-        if (data.error) throw new Error(data.error);
+        if (data.erro) throw new Error(data.erro);
         return data;
     },
 
@@ -19,9 +19,19 @@ const apiService = {
         const response = await fetch(`http://localhost:3000/odds?eventId=${eventId}`);
         if (!response.ok) throw new Error('Erro ao buscar mercados.');
         const data = await response.json();
-        if (data.error) throw new Error(data.error);
+        if (data.erro) throw new Error(data.erro);
         return data;
     },
+
+    async getTransacoes() {
+        const response = await fetch('http://localhost:3000/transacoes');
+        if (!response.ok) throw new Error('Erro ao obter as transações.');
+        const data = await response.json();
+        if (data.erro) throw new Error(data.erro);
+        return data;
+    },
+    
+    
 
     async postAposta(payload) {
         const response = await fetch('http://localhost:3000/apostar', {
@@ -29,10 +39,22 @@ const apiService = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
-        console.log(JSON.stringify(payload));
-        if (!response.ok) throw new Error('Erro ao realizar a aposta.');
-        return response.json();
+    
+        // Verifica se a resposta foi bem-sucedida
+        if (!response.ok) {
+            const errorData = await response.json(); // Obtém o corpo da resposta com erro
+            if (errorData.erro) {
+                throw new Error(errorData.erro); // Lança um erro com a mensagem do servidor
+            }
+            throw new Error('Erro ao realizar a aposta.'); // Mensagem genérica em caso de erro
+        }
+    
+        // Retorna os dados em caso de sucesso
+        const data = await response.json();
+        if (data.erro) throw new Error(data.erro);
+        return data;
     },
+    
 
     async postDeposito(valor) {
         const response = await fetch('http://localhost:3000/depositar', {
@@ -65,12 +87,12 @@ const uiHandlers = {
     setCarregando(container, isLoading) {
         let loadingSpan = container.querySelector('.loading-indicator');
         if (!loadingSpan) {
-        loadingSpan = document.createElement('span');
-        loadingSpan.classList.add('loading-indicator');
-        loadingSpan.textContent = 'Carregando...';
-        loadingSpan.style.marginLeft = '10px';
-        loadingSpan.style.color = '#888';
-        container.appendChild(loadingSpan);
+            loadingSpan = document.createElement('span');
+            loadingSpan.classList.add('loading-indicator');
+            loadingSpan.textContent = 'Carregando...';
+            loadingSpan.style.marginLeft = '10px';
+            loadingSpan.style.color = '#888';
+            container.appendChild(loadingSpan);
         }
         loadingSpan.style.display = isLoading ? 'inline' : 'none';
     },
@@ -78,13 +100,13 @@ const uiHandlers = {
     setErro(container, isError, msg) {
         let errorSpan = container.querySelector('.error-indicator');
         if (!errorSpan) {
-        errorSpan = document.createElement('span');
-        errorSpan.classList.add('error-indicator');
-        errorSpan.style.color = 'red';
-        container.appendChild(errorSpan);
+            errorSpan = document.createElement('span');
+            errorSpan.classList.add('error-indicator');
+            errorSpan.style.color = 'red';
+            container.appendChild(errorSpan);
         }
         if (typeof msg !== 'undefined') {
-        errorSpan.textContent = msg;
+            errorSpan.textContent = msg;
         }
         errorSpan.style.display = isError ? 'inline' : 'none';
     },
@@ -109,118 +131,147 @@ const uiHandlers = {
         });
     },
 
-    showBetForm(marketData, mercadosDiv, eventoData, processaFormularioAposta) {
-    // Limpa o conteúdo anterior
-    mercadosDiv.innerHTML = '';
+    mostraBetForm(marketData, mercadosDiv, eventoData, processaBetForm) {
+        // Limpa o conteúdo anterior
+        mercadosDiv.innerHTML = '';
 
-    // Cria o formulário
-    const form = document.createElement('form');
-    form.id = 'bet-form';
+        // Cria o formulário
+        const form = document.createElement('form');
+        form.id = 'bet-form';
 
-    // Label e select para categoria
-    const labelCategory = document.createElement('label');
-    labelCategory.setAttribute('for', 'bet-category');
-    labelCategory.textContent = 'Selecione um Mercado:';
+        // Label e select para categoria
+        const labelCategory = document.createElement('label');
+        labelCategory.setAttribute('for', 'bet-category');
+        labelCategory.textContent = 'Selecione um Mercado:';
 
-    const betCategorySelect = document.createElement('select');
-    betCategorySelect.id = 'bet-category';
-    betCategorySelect.name = 'bet-category';
+        const betCategorySelect = document.createElement('select');
+        betCategorySelect.id = 'bet-category';
+        betCategorySelect.name = 'bet-category';
 
-    // Opção padrão para categoria
-    const defaultCategoryOption = document.createElement('option');
-    defaultCategoryOption.value = '';
-    defaultCategoryOption.disabled = true;
-    defaultCategoryOption.selected = true;
-    defaultCategoryOption.textContent = 'Selecione um mercado';
-    betCategorySelect.appendChild(defaultCategoryOption);
+        // Opção padrão para categoria
+        const defaultCategoryOption = document.createElement('option');
+        defaultCategoryOption.value = '';
+        defaultCategoryOption.disabled = true;
+        defaultCategoryOption.selected = true;
+        defaultCategoryOption.textContent = 'Selecione um mercado';
+        betCategorySelect.appendChild(defaultCategoryOption);
 
-    // Mapeamento dos mercados
-    const marketsMap = {};
-    const marketsDataMap = {};
+        // Mapeamento dos mercados
+        const marketsMap = {};
+        const marketsDataMap = {};
 
-    // Popula os mercados
-    const marketsArray = Object.values(marketData.markets);
-    marketsArray.forEach((market) => {
-        const marketKey = market.marketName + '|' + market.handicap;
-        const option = document.createElement('option');
-        option.value = marketKey;
-        option.textContent = `${market.marketName} (${market.handicap || 'N/A'})`;
-        betCategorySelect.appendChild(option);
-        marketsMap[marketKey] = market.outcomes;
-        marketsDataMap[marketKey] = market;
-    });
-
-    // Label e select para opções
-    const labelOption = document.createElement('label');
-    labelOption.setAttribute('for', 'bet-option');
-    labelOption.textContent = 'Selecione uma Opção:';
-
-    const betOptionSelect = document.createElement('select');
-    betOptionSelect.id = 'bet-option';
-    betOptionSelect.name = 'bet-option';
-
-    // Opção padrão para resultado
-    const defaultOptionOption = document.createElement('option');
-    defaultOptionOption.value = '';
-    defaultOptionOption.disabled = true;
-    defaultOptionOption.selected = true;
-    defaultOptionOption.textContent = 'Selecione uma opção';
-    betOptionSelect.appendChild(defaultOptionOption);
-
-    // Campo para valor da aposta
-    const labelAmount = document.createElement('label');
-    labelAmount.setAttribute('for', 'bet-amount');
-    labelAmount.textContent = 'Valor da Aposta:';
-
-    const betAmountInput = document.createElement('input');
-    betAmountInput.type = 'number';
-    betAmountInput.id = 'bet-amount';
-    betAmountInput.name = 'bet-amount';
-    betAmountInput.min = '1';
-    betAmountInput.step = '0.01';
-
-    // Botão de submissão
-    const submitButton = document.createElement('button');
-    submitButton.type = 'submit';
-    submitButton.textContent = 'Fazer Aposta';
-
-    // Monta o formulário
-    form.appendChild(labelCategory);
-    form.appendChild(betCategorySelect);
-    form.appendChild(document.createElement('br'));
-    form.appendChild(labelOption);
-    form.appendChild(betOptionSelect);
-    form.appendChild(document.createElement('br'));
-    form.appendChild(labelAmount);
-    form.appendChild(betAmountInput);
-    form.appendChild(document.createElement('br'));
-    form.appendChild(submitButton);
-
-    mercadosDiv.appendChild(form);
-
-    // Listener para mudança de mercado
-    betCategorySelect.addEventListener('change', () => {
-        const selectedMarketKey = betCategorySelect.value;
-        betOptionSelect.innerHTML = '';
-        betOptionSelect.appendChild(defaultOptionOption.cloneNode(true));
-
-        const outcomes = marketsMap[selectedMarketKey];
-        if (outcomes) {
-            Object.entries(outcomes).forEach(([outcomeId, outcome]) => {
+        // Popula os mercados
+        const marketsArray = Object.values(marketData.markets);
+        marketsArray.forEach((market) => {
+            const marketKey = market.marketName + '|' + market.handicap;
             const option = document.createElement('option');
-            option.value = outcomeId;
-            option.textContent = `${outcome.outcomeName} (${outcome.price})`;
-            betOptionSelect.appendChild(option);
-            });
-        }
-    });
+            option.value = marketKey;
+            option.textContent = `${market.marketName} (${market.handicap || 'N/A'})`;
+            betCategorySelect.appendChild(option);
+            marketsMap[marketKey] = market.outcomes;
+            marketsDataMap[marketKey] = market;
+        });
 
-    // Listener para submissão do formulário
-    form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        processaFormularioAposta(form, eventoData, marketsDataMap);
-    });
+        // Label e select para opções
+        const labelOption = document.createElement('label');
+        labelOption.setAttribute('for', 'bet-option');
+        labelOption.textContent = 'Selecione uma Opção:';
+
+        const betOptionSelect = document.createElement('select');
+        betOptionSelect.id = 'bet-option';
+        betOptionSelect.name = 'bet-option';
+
+        // Opção padrão para resultado
+        const defaultOptionOption = document.createElement('option');
+        defaultOptionOption.value = '';
+        defaultOptionOption.disabled = true;
+        defaultOptionOption.selected = true;
+        defaultOptionOption.textContent = 'Selecione uma opção';
+        betOptionSelect.appendChild(defaultOptionOption);
+
+        // Campo para valor da aposta
+        const labelAmount = document.createElement('label');
+        labelAmount.setAttribute('for', 'bet-amount');
+        labelAmount.textContent = 'Valor da Aposta:';
+
+        const betAmountInput = document.createElement('input');
+        betAmountInput.type = 'number';
+        betAmountInput.id = 'bet-amount';
+        betAmountInput.name = 'bet-amount';
+        betAmountInput.min = '1';
+        betAmountInput.step = '0.01';
+
+        // Botão de submissão
+        const submitButton = document.createElement('button');
+        submitButton.type = 'submit';
+        submitButton.textContent = 'Fazer Aposta';
+
+        // Monta o formulário
+        form.appendChild(labelCategory);
+        form.appendChild(betCategorySelect);
+        form.appendChild(document.createElement('br'));
+        form.appendChild(labelOption);
+        form.appendChild(betOptionSelect);
+        form.appendChild(document.createElement('br'));
+        form.appendChild(labelAmount);
+        form.appendChild(betAmountInput);
+        form.appendChild(document.createElement('br'));
+        form.appendChild(submitButton);
+
+        mercadosDiv.appendChild(form);
+
+        // Listener para mudança de mercado
+        betCategorySelect.addEventListener('change', () => {
+            const selectedMarketKey = betCategorySelect.value;
+            betOptionSelect.innerHTML = '';
+            betOptionSelect.appendChild(defaultOptionOption.cloneNode(true));
+
+            const outcomes = marketsMap[selectedMarketKey];
+            if (outcomes) {
+                Object.entries(outcomes).forEach(([outcomeId, outcome]) => {
+                    const option = document.createElement('option');
+                    option.value = outcomeId;
+                    option.textContent = `${outcome.outcomeName} (${outcome.price})`;
+                    betOptionSelect.appendChild(option);
+                });
+            }
+        });
+
+        // Listener para submissão do formulário
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            processaBetForm(form, eventoData, marketsDataMap);
+        });
     },
+
+    atualizarTabelaTransacoes(transacoes) {
+        const tabelaTransacoes = document.getElementById('tabela-transacoes').querySelector('tbody');
+        tabelaTransacoes.innerHTML = ''; // Limpa as linhas existentes
+    
+        transacoes.forEach((transacao) => {
+            const row = document.createElement('tr');
+    
+            const tipoCell = document.createElement('td');
+            tipoCell.textContent = transacao.tipo.charAt(0).toUpperCase() + transacao.tipo.slice(1);
+            row.appendChild(tipoCell);
+    
+            const valorCell = document.createElement('td');
+            valorCell.textContent = `R$ ${transacao.valor.toFixed(2).replace('.', ',')}`;
+            row.appendChild(valorCell);
+    
+            const dataCell = document.createElement('td');
+            const dataFormatada = new Date(transacao.data).toLocaleString('pt-BR');
+            dataCell.textContent = dataFormatada;
+            row.appendChild(dataCell);
+    
+            const detalhesCell = document.createElement('td');
+            detalhesCell.textContent = JSON.stringify(transacao.detalhes);
+            row.appendChild(detalhesCell);
+    
+            tabelaTransacoes.appendChild(row);
+        });
+    },
+    
 
     atualizarElementoSaldo(saldo) {
         const saldoElemento = document.getElementById('saldo-usuario');
@@ -232,6 +283,7 @@ const uiHandlers = {
 document.addEventListener('DOMContentLoaded', () => {
     // Atualiza o saldo ao carregar a página
     atualizarSaldo();
+    atualizarTransacoes();
     
     // Referências aos elementos do DOM
     const esporteRadios = document.querySelectorAll('input[name="esporte"]');
@@ -257,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         radio.addEventListener('change', () => {
         if (radio.checked) {
             const selectedSport = radio.value;
-            handleSportChange(selectedSport);
+            processaEsportessUi(selectedSport);
         }
         });
     });
@@ -265,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
     torneioSelect.addEventListener('change', () => {
         const tournamentId = torneioSelect.value;
         if (tournamentId) {
-            handleTournamentChange(tournamentId);
+            processaTorneiosUi(tournamentId);
         }
     });
 
@@ -288,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await apiService.postDeposito(valor);
             await atualizarSaldo();
+            await atualizarTransacoes();
         } catch (error) {
             console.error('Erro ao depositar:', error);
             alert('Erro ao depositar. Tente novamente.');
@@ -308,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Funções principais
-    async function handleSportChange(selectedSport) {
+    async function processaEsportessUi(selectedSport) {
         uiHandlers.setErro(esporteDiv, false);
         uiHandlers.setCarregando(esporteDiv, true);
         torneiosDiv.classList.add('hidden');
@@ -327,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     }
 
-    async function handleTournamentChange(tournamentId) {
+    async function processaTorneiosUi(tournamentId) {
         uiHandlers.setErro(torneiosDiv, false);
         uiHandlers.setCarregando(torneiosDiv, true);
         eventosDiv.classList.add('hidden');
@@ -353,23 +406,24 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const marketData = await apiService.getMercados(eventId);
 
-        if (!marketData || Object.keys(marketData).length === 0) {
-            alert('Nenhum mercado disponível para este evento.');
-            return;
-        }
+            if (!marketData || Object.keys(marketData).length === 0) {
+                alert('Nenhum mercado disponível para este evento.');
+                return;
+            }
 
-        // Dados do evento
-        const eventoData = {
-            date: marketData.date,
-            participant1: marketData.participant1,
-            participant2: marketData.participant2,
-            eventStatus: marketData.eventStatus,
-            eventId: marketData.eventId,
-            tournamentId: marketData.tournamentId,
-        };
+            // Dados do evento
+            const eventoData = {
+                date: marketData.date,
+                participant1: marketData.participant1,
+                participant2: marketData.participant2,
+                eventStatus: marketData.eventStatus,
+                eventId: marketData.eventId,
+                tournamentId: marketData.tournamentId,
+            };
+            console.log(eventoData);
 
-        uiHandlers.showBetForm(marketData, mercadosDiv, eventoData, processaFormularioAposta);
-        mercadosDiv.classList.remove('hidden');
+            uiHandlers.mostraBetForm(marketData, mercadosDiv, eventoData, processaBetForm);
+            mercadosDiv.classList.remove('hidden');
         } catch (error) {
             console.error(error);
             uiHandlers.setErro(eventosDiv, true, error.message);
@@ -378,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function processaFormularioAposta(form, eventoData, marketsDataMap) {
+    async function processaBetForm(form, eventoData, marketsDataMap) {
         const betCategorySelect = form.querySelector('#bet-category');
         const betOptionSelect = form.querySelector('#bet-option');
         const betAmountInput = form.querySelector('#bet-amount');
@@ -394,6 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Recupera os dados do mercado e resultado selecionados
         const selectedMarket = marketsDataMap[selectedMarketKey];
+        console.log(selectedMarket);
         const selectedOutcome = selectedMarket.outcomes[selectedOutcomeId];
 
         // Prepara o payload
@@ -417,11 +472,11 @@ document.addEventListener('DOMContentLoaded', () => {
             await apiService.postAposta(payload);
             // Atualiza o saldo após a aposta ser processada
             await atualizarSaldo();
+            await atualizarTransacoes();
             alert('Aposta realizada com sucesso!');
-            form.reset();
         } catch (error) {
             console.error('Erro ao realizar a aposta:', error);
-            alert('Erro ao realizar a aposta. Tente novamente.');
+            uiHandlers.setErro(form, true, error.message);
         }
     }
 
@@ -436,4 +491,35 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Erro ao atualizar saldo.');
         }
     }
+
+    async function atualizarTransacoes() {
+        const transacoesDiv = document.querySelector('.transacoes');
+        uiHandlers.setErro(transacoesDiv, false);
+        uiHandlers.setCarregando(transacoesDiv, true);
+    
+        try {
+            const transacoes = await apiService.getTransacoes();
+    
+            uiHandlers.atualizarTabelaTransacoes(transacoes);
+
+            // Remove a classe 'hidden' para mostrar a seção de transações
+            transacoesDiv.classList.remove('hidden');
+        } catch (error) {
+            console.error('Erro ao obter as transações:', error);
+    
+            // Utiliza setErro para mostrar a mensagem de erro
+            uiHandlers.setErro(transacoesDiv, true, error.message);
+    
+            // Limpa a tabela de transações
+            const tabelaTransacoes = document.getElementById('tabela-transacoes').querySelector('tbody');
+            tabelaTransacoes.innerHTML = '';
+    
+            // Remove a classe 'hidden' para mostrar a mensagem de erro
+            transacoesDiv.classList.remove('hidden');
+        } finally {
+            uiHandlers.setCarregando(transacoesDiv, false);
+        }
+    }
+    
+
 });

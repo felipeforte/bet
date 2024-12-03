@@ -60,23 +60,25 @@
     (cond
           (= esporte "futebol") (para-json (core/get-torneios "soccer")) ;; Chama função para "futebol"
           (= esporte "basquete") (para-json (core/get-torneios "basketball")) ;; Chama função para "basquete"
-          :else (para-json {:error "Esporte inválido. Use 'futebol' ou 'basquete'."})))
+          :else (para-json {:erro "Esporte inválido. Use 'futebol' ou 'basquete'."})))
   
   (GET "/eventos" [tournamentId]
     (cond
       (nil? tournamentId)
-      (para-json {:error "Parâmetro 'tournamentId' é necessário."})
+      (para-json {:erro "Parâmetro 'tournamentId' é necessário."})
       :else
       (para-json (core/get-eventos tournamentId))))
   
   (GET "/odds" [eventId]
     (cond
       (nil? eventId)
-      (para-json {:error "Parâmetro 'eventId' é necessário."})
+      (para-json {:erro "Parâmetro 'eventId' é necessário."})
       :else
       (para-json (core/get-evento-odds eventId))))
   
+  (GET "/transacoes" [] (para-json (db/get-transacoes))) 
   (GET "/saldo" [] (para-json {:saldo @db/saldo}))
+  
   (POST "/depositar" requisicao
     (depositar requisicao))
   (POST "/apostar" requisicao

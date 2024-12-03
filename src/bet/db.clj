@@ -5,11 +5,19 @@
 
 (def transacoes (atom []))
 
+(defn get-transacoes
+  "Retorna transações :D"
+  []
+  (if (empty? @transacoes)
+    {:erro "Transações não disponíveis."}
+    @transacoes))
+
 (defn registrar-transacao [tipo valor detalhes]
   (swap! transacoes conj {:tipo     tipo
                           :valor    valor
+                          :data     (str (java.time.LocalDateTime/now))
                           :detalhes detalhes})
-  (println transacoes))
+  )
 
 
 (defn validar-deposito [valor]
@@ -61,5 +69,6 @@
       erro-odds erro-odds
       erro-evento erro-evento
       :else (do (swap! saldo - valor)
+      (registrar-transacao "aposta" valor {:odds odds :evento evento})
               {:mensagem "Aposta registrada com sucesso"
              :saldo-atual @saldo}))))

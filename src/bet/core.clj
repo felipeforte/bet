@@ -4,11 +4,7 @@
            [cheshire.core :as json]
            [clojure.java.io :as io]))
 
-
-
-(def disponiveis {:torneios #{325, 1562}})
-
-(def api-key "99b5e27786msh32148b7670e235bp1802f3jsn8d40ad589bf5")
+(def api-key "0453833644mshc50222153ea3292p1922c6jsnd00a75a3a2be")
 
 (def cache-tempo (* 3600 1000 6)) ;; Definindo 6h em milisegundos para tempo de renovação de cache da API
 
@@ -31,7 +27,7 @@
 
 
 (defn processar-cache
-  "Processa o cache: verifica validade e retorna o conteúdo JSON ou false"
+  "Processa o cache: verifica validade e retorna o conteúdo JSON falso"
   [tipo extra]
   (let [json-string (get-cache tipo extra)
         json-data (json/parse-string json-string true)
@@ -43,13 +39,13 @@
         cota-excedida? (and (:error json-data)
                             (= (:error json-data) "Cota de API excedida. Use outra chave API."))]
     (cond
-      cache-vazio? false
-      sem-timestamp? false
-      cache-expirado? false
+      cache-vazio? (do (println "Cache vazio.") false)
+      sem-timestamp? (do (println "Cache sem timestamp.") false)
+      cache-expirado? (do (println "Cache expirado... Tempo desde o último cache em ms:" (- (System/currentTimeMillis) (:timestamp json-data))) false)
       cota-excedida? false
       :else
       (do
-        (println "Usando cache disponível...")
+        (println "Usando cache disponível... Tempo desde o último cache em ms:" (- (System/currentTimeMillis) (:timestamp json-data)))
         json-data))))
 
 
@@ -78,16 +74,17 @@
   "Faz chamadas GET de forma programática para diferentes tipos de requisições"
   [req-tipo extra cache-arquivo & [filtro-func]]
   (try
+    (println (str "Buscando " req-tipo " via API externa..."))
     (let [resp (api-get req-tipo extra)
           body (assoc (json/parse-string (:body resp) true) :timestamp (System/currentTimeMillis))
           filtrado (if filtro-func
                      (if (= req-tipo "torneios")
-                       (filtro-func body)    ;; For 'torneios', call with 'body' only
-                       (filtro-func body extra))  ;; For others, call with 'body' and 'extra'
-                     body)]
-      (println (str "Buscando " req-tipo " via API externa..."))
+                       (filtro-func body)    ;; Exceção para torneios
+                       (filtro-func body extra))
+                     body)] 
       (spit cache-arquivo (json/generate-string filtrado true))
       filtrado)
+    (println "Sucesso ao buscar" req-tipo)
     (catch clojure.lang.ExceptionInfo e
       (let [data (ex-data e)
             status (:status data)
@@ -96,8 +93,7 @@
                             (and body-msg-str (.contains body-msg-str "You have exceeded"))
                             "Cota de API excedida. Use outra chave API."
                             (and body-msg-str (.contains body-msg-str "tournament exists but is not active at the moment"))
-                            "Torneio existe, mas não está ativo no momento."
-                            ;; Additional error messages specific to 'torneios' can be added here
+                            "Torneio existe, mas não está ativo no momento." 
                             :else
                             body-msg-str)]
         (if (or (= 400 status) (= 429 status))
@@ -110,12 +106,12 @@
 (defn filtrar-torneios
   "Filtra torneios brasileiros"
   [body]
-  (into {} (filter (fn [[_ v]] (= (:categoryName v) "Brazil")) body)))
+  (into {:timestamp (:timestamp body)} (filter (fn [[_ v]] (= (:categoryName v) "Brazil")) body)))
 
 (defn filtrar-eventos
   "Filtra chaves irrelevantes e retorna os dados organizados"
   [body tournamentId]
-  (into {}
+  (into {:timestamp (:timestamp body)}
         (map (fn [[k {:keys [date participant1 participant2 eventStatus eventId]}]]
                [k {:date          date
                    :participant1  participant1
@@ -176,7 +172,7 @@
         cache-arquivo (str "cache/tournaments-" sport ".json")]
     (if cache
       cache
-      (try-catch-api "torneios" sport cache-arquivo filtrar-torneios))))
+      (do (try-catch-api "torneios" sport cache-arquivo filtrar-torneios)))))
 
 
 (defn get-eventos
@@ -199,12 +195,9 @@
     (if cache
       cache
       (try-catch-api "odds" eventId cache-arquivo filtrar-odds))))
-  
 
 
 (defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  ;; (println (get-torneios "soccer")))
-  (println (get-evento-odds "id100032548215167")))
+  "Nada por aqui."
+  [& args])
   
