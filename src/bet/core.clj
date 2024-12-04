@@ -83,8 +83,8 @@
                        (filtro-func body extra))
                      body)] 
       (spit cache-arquivo (json/generate-string filtrado true))
-      filtrado)
-    (println "Sucesso ao buscar" req-tipo)
+      (do (println "Sucesso ao buscar" req-tipo)
+        filtrado))
     (catch clojure.lang.ExceptionInfo e
       (let [data (ex-data e)
             status (:status data)
